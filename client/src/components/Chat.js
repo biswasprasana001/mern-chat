@@ -18,19 +18,25 @@ function Chat() {
       try {
         const response = await axios.get(`/api/messages/${roomId}`);
         setMessages(response.data);
-        // Use Socket.IO to listen for new messages
-        socket.on('newMessage', (newMessage) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-      });
-      return () => {
-        socket.off('newMessage');
-      };        
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
     };
 
     fetchMessages();
+  }, [roomId]);
+
+  useEffect(() => {
+    // ... Fetching messages from the backend API ...
+
+    // Use Socket.IO to listen for new messages
+    socket.on('newMessage', (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      socket.off('newMessage');
+    };
   }, [roomId]);
 
   const sendMessage = async (e) => {
