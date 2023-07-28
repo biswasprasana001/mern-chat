@@ -24,7 +24,7 @@ function Chat() {
     };
 
     fetchMessages();
-  }, [roomId]);
+  }, [roomId]); 
 
   useEffect(() => {
     // ... Fetching messages from the backend API ...
@@ -55,14 +55,14 @@ function Chat() {
       // Send message to the backend API
       await axios.post('/api/messages', newMessage);
 
-      // Emit a new message event using Socket.IO
-      socket.emit('newMessage', newMessage);
+      // Emit a new message event using Socket.IO to the recipient
+      socket.emit('newMessage', newMessage, recipientUserId); // Add recipientUserId as an argument
 
       setInput('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };
+  };  
 
   return (
     <div className="chat">

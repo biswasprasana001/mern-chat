@@ -1,7 +1,7 @@
 // routes/messages.js
 const express = require('express');
 const router = express.Router();
-const Message = require('../models/Message');
+const Message = require('../models/message'); // Import the Message model
 
 // Get all messages for a specific chat room
 router.get('/:roomId', async (req, res) => {
