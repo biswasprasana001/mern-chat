@@ -24,10 +24,6 @@ function Chat() {
     };
 
     fetchMessages();
-  }, [roomId]); 
-
-  useEffect(() => {
-    // ... Fetching messages from the backend API ...
 
     // Use Socket.IO to listen for new messages
     socket.on('newMessage', (newMessage) => {
@@ -62,7 +58,7 @@ function Chat() {
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };  
+  };
 
   return (
     <div className="chat">

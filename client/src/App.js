@@ -4,14 +4,14 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
+import io from 'socket.io-client';
 
 function App() {
   useEffect(() => {
     const socket = io('http://localhost:5000');
 
     // Emit a login event with the user's ID when they log in
-    const userId = '123456789'; // Replace with the actual user ID or a dummy one for testing
-    socket.emit('login', userId);
+    socket.emit('login', userId); // Replace userId with the actual user ID
 
     return () => {
       socket.disconnect();
