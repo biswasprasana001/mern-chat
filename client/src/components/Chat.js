@@ -48,11 +48,15 @@ function Chat() {
         received: false,
       };
 
-      // Send message to the backend API
-      await axios.post('/api/messages', newMessage);
+      // Send message to the backend API with the auth-token header
+      await axios.post('/api/messages', newMessage, {
+        headers: {
+          'auth-token': token,
+        },
+      });
 
       // Emit a new message event using Socket.IO to the recipient
-      socket.emit('newMessage', newMessage, recipientUserId); // Add recipientUserId as an argument
+      socket.emit('newMessage', newMessage, recipientUserId);
 
       setInput('');
     } catch (error) {

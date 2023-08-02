@@ -10,6 +10,8 @@ const io = require('socket.io')(server);
 app.use(cors());
 app.use(express.json());
 
+const jwt = require('jsonwebtoken');
+const authRoute = require('./routes/auth');
 const users = {};
 
 // server.js
@@ -30,6 +32,24 @@ app.get('/', (req, res) => {
   res.send('Server is up and running!');
 });
 
+// Middleware to validate JWT token
+const validateToken = (req, res, next) => {
+  const token = req.header('auth-token');
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied' });
+  }
+
+  try {
+    const verified = jwt.verify(token, 'YOUR_SECRET_KEY');
+    req.user = verified;
+    next();
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid token' });
+  }
+};
+
+// Use the authRoute
+app.use('/api/user', authRoute);
 
 io.on('connection', (socket) => {
   console.log('A user connected');
