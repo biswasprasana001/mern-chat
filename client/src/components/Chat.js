@@ -7,23 +7,23 @@ import io from 'socket.io-client'; // Import Socket.IO
 const socket = io('http://localhost:5000'); // Replace with your backend server URL
 
 
-function Chat() {
+function Chat({ messages, input, setInput, handleSendMessage }) {
   const { roomId } = useParams();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
   useEffect(() => {
     // Fetch messages from the backend API
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get(`/api/messages/${roomId}`);
-        setMessages(response.data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
+    // const fetchMessages = async () => {
+    //   try {
+    //     const response = await axios.get(`/api/messages/${roomId}`);
+    //     setMessages(response.data);
+    //   } catch (error) {
+    //     console.error('Error fetching messages:', error);
+    //   }
+    // };
 
-    fetchMessages();
+    // fetchMessages();
 
     // Use Socket.IO to listen for new messages
     socket.on('newMessage', (newMessage) => {
@@ -35,39 +35,19 @@ function Chat() {
     };
   }, [roomId]);
 
-  const sendMessage = async (e) => {
-    e.preventDefault();
-
-    try {
-      const timestamp = new Date().toISOString();
-      const newMessage = {
-        roomId,
-        message: input,
-        name: 'Your Name', // Replace with the user's name
-        timestamp,
-        received: false,
-      };
-
-      // Send message to the backend API with the auth-token header
-      await axios.post('/api/messages', newMessage, {
-        headers: {
-          'auth-token': token,
-        },
-      });
-
-      // Emit a new message event using Socket.IO to the recipient
-      socket.emit('newMessage', newMessage, recipientUserId);
-
-      setInput('');
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  };
-
   return (
     <div className="chat">
-      {/* Display messages */}
-      {/* Chat input */}
+      <div className="chat__messages">
+        {messages.map((message) => (
+          <p key={message._id}>{message.name}: {message.message}</p>
+        ))}
+      </div>
+      <div className="chat__input">
+        <form>
+          <input type="text" placeholder="Type a message" value={input} onChange={(e) => setInput(e.target.value)} />
+          <button onClick={handleSendMessage} type="submit">Send</button>
+        </form>
+      </div>
     </div>
   );
 }
