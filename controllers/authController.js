@@ -28,7 +28,7 @@ const registerUser = async (req, res) => {
     // Generate a JWT token for the user
     const token = generateAccessToken(newUser._id);
 
-    res.status(201).json({ token });
+    res.status(201).json({ token, userId: newUser._id, username: newUser.username });
   } catch (error) {
     res.status(500).json({ error: 'Error registering user' });
   }
@@ -53,7 +53,7 @@ const loginUser = async (req, res) => {
     // Generate a JWT token for the user
     const token = generateAccessToken(user._id);
 
-    res.status(200).json({ token });
+    res.status(200).json({ token, userId: user._id, username: user.username });
   } catch (error) {
     res.status(500).json({ error: 'Error logging in user' });
   }

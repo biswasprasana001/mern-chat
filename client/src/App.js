@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
-import io from 'socket.io-client';
 
 function App() {
   const [username, setUsername] = useState('');
@@ -11,6 +10,7 @@ function App() {
   const [loggedInUserId, setLoggedInUserId] = useState('');
   const [users, setUsers] = useState([]);
   const [recipientUserId, setRecipientUserId] = useState('');
+  const [recipientUsername, setRecipientUsername] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
@@ -20,6 +20,7 @@ function App() {
     try {
       const response = await axios.post('/api/user/register', { username, password });
       setToken(response.data.token);
+      setLoggedInUserId(response.data.userId);
       setUsername('');
       setPassword('');
     } catch (error) {
@@ -33,6 +34,7 @@ function App() {
     try {
       const response = await axios.post('/api/user/login', { username, password });
       setToken(response.data.token);
+      setLoggedInUserId(response.data.userId);
       setUsername('');
       setPassword('');
     } catch (error) {
@@ -44,19 +46,9 @@ function App() {
     setToken('');
     setLoggedInUserId('');
     setRecipientUserId('');
+    setRecipientUsername('');
     setMessages([]);
   };
-
-  useEffect(() => {
-    const socket = io('http://localhost:5000');
-
-    // Emit a login event with the user's ID when they log in
-    socket.emit('login', userId); // Replace userId with the actual user ID
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [userId]); // Add userId as a dependency
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -66,7 +58,7 @@ function App() {
       const newMessage = {
         roomId: loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`,
         message: input,
-        name: 'Your Name', // Replace with the user's name
+        name: username, // Use the user's username for the message
         timestamp,
         received: false,
       };
@@ -82,7 +74,7 @@ function App() {
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };  
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -100,7 +92,7 @@ function App() {
 
     fetchUsers();
   }, [token]);
-  
+
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -120,21 +112,22 @@ function App() {
       fetchMessages();
     }
   }, [loggedInUserId, recipientUserId, token]);
-
+  
   return (
-    <Router>
+    <Router> 
       {token ? (
         <div className="app">
           <Switch>
             <Route path="/chat/:recipientUserId">
               <div className="app__body">
-                <Sidebar users={users} setRecipientUserId={setRecipientUserId} />
+              <Sidebar users={users} setRecipientUserId={setRecipientUserId} setRecipientUsername={setRecipientUsername} />
                 <Chat
-                  messages={messages}
-                  input={input}
-                  setInput={setInput}
-                  handleSendMessage={handleSendMessage}
-                />
+                messages={messages}
+                input={input}
+                setInput={setInput}
+                handleSendMessage={handleSendMessage}
+                recipientUsername={recipientUsername}
+              />
               </div>
             </Route>
             <Route path="/">
