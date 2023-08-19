@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, 'YOUR_SECRET_KEY', { expiresIn: '1h' });
+  return jwt.sign({ userId }, 'Biswas@2001', { expiresIn: '1h' });
 };
 
 const registerUser = async (req, res) => {
@@ -30,6 +30,7 @@ const registerUser = async (req, res) => {
 
     res.status(201).json({ token, userId: newUser._id, username: newUser.username });
   } catch (error) {
+     
     res.status(500).json({ error: 'Error registering user' });
   }
 };
@@ -59,4 +60,13 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '_id username');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching users' });
+  }
+};
+
+module.exports = { registerUser, loginUser, getAllUsers };

@@ -17,8 +17,8 @@ router.get('/:roomId', async (req, res) => {
 // Create a new message
 router.post('/', async (req, res) => {
   try {
-    const { roomId, message, name, timestamp, received } = req.body;
-    const newMessage = new Message({ roomId, message, name, timestamp, received });
+    const { roomId, message, name, timestamp } = req.body;
+    const newMessage = new Message({ roomId, message, name, timestamp });
     await newMessage.save();
     res.status(201).json(newMessage);
   } catch (error) {

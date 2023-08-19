@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Sidebar({ users, setRecipientUserId, setRecipientUsername }) {
   return (
     <div className="sidebar">
@@ -5,7 +7,7 @@ function Sidebar({ users, setRecipientUserId, setRecipientUsername }) {
       <ul>
         {users.map((user) => (
           <li key={user._id}>
-            <Link to={`/chat/${user._id}`} onClick={() => {
+            <Link to={{ pathname: `/chat/${user._id}` }} onClick={() => {
               setRecipientUserId(user._id);
               setRecipientUsername(user.username);
             }}>
@@ -17,3 +19,6 @@ function Sidebar({ users, setRecipientUserId, setRecipientUsername }) {
     </div>
   );
 }
+
+export default Sidebar;
+

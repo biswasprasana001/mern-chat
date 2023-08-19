@@ -1,6 +1,5 @@
 // components/Chat.js
 import React from 'react';
-import './Chat.css';
 
 function Chat({ messages, input, setInput, handleSendMessage, recipientUsername }) {
   return (
