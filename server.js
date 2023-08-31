@@ -33,26 +33,14 @@ app.get('/', (req, res) => {
   res.send('Server is up and running!');
 });
 
-io.on('connection', (socket) => {
-  console.log('A user connected');
+const { initSocket } = require('./socket'); // Import the initSocket function
 
-  socket.on('joinRoom', (roomId) => {
-    socket.join(roomId);
-  });
-
-  socket.on('newMessage', (newMessage) => {
-    // Save the new message to the database
-
-    io.to(newMessage.roomId).emit('updateMessages', newMessage);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
+initSocket(server); // Initialize Socket.IO
 
 // Start the server
 const PORT = 5000;
 server.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
+
+module.exports = { io };

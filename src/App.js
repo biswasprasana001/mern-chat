@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useMatch, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from 'axios';
 import io from 'socket.io-client'; // Import Socket.IO client
 import './App.css';
@@ -16,6 +16,7 @@ function App() {
   const [recipientUsername, setRecipientUsername] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [roomId, setroomId] = useState('');
 
   const socket = io('http://localhost:3000'); // Replace with your server URL
 
@@ -57,7 +58,7 @@ function App() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-
+  
     try {
       const timestamp = new Date().toISOString();
       const newMessage = {
@@ -66,18 +67,14 @@ function App() {
         name: username, // Use the user's username for the message
         timestamp,
       };
-
+  
       // Send message to the backend API with the auth-token header
-      await axios.post('/api/messages', newMessage);
-
-      // Emit a new message event using Socket.IO to the recipient
-      socket.emit('newMessage', newMessage);
- 
+      await axios.post('/api/messages', newMessage);  
       setInput('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };
+  };  
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -102,30 +99,24 @@ function App() {
         console.error('Error fetching messages:', error);
       }
     };
-
+  
     if (loggedInUserId && recipientUserId) {
       fetchMessages();
-    }
-  }, [loggedInUserId, recipientUserId, token]);
-
-  useEffect(() => {
-    // Join the room corresponding to the selected recipient
-    if (loggedInUserId && recipientUserId) {
-      const roomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
+      setroomId(loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`);
       socket.emit('joinRoom', roomId);
     }
-  }, [loggedInUserId, recipientUserId]); 
+  }, [loggedInUserId, recipientUserId, token]);    
 
   useEffect(() => {
-    // Listen for updates to messages
-    socket.on('updateMessages', (newMessage) => {
+   // Listen for updates to messages
+    socket.on('newMessage', (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
     return () => {
-      socket.off('updateMessages');
+      socket.off('newMessage');
     };
-  }, []);
+  }, [messages]);
   
   return (
     <BrowserRouter> 
@@ -135,13 +126,15 @@ function App() {
           <Routes>
             <Route path="/chat/:recipientUserId" element={
               <div className="app__body">
-                <Chat
-                messages={messages}
-                input={input}
-                setInput={setInput}
-                handleSendMessage={handleSendMessage}
-                recipientUsername={recipientUsername}
-              />
+                {roomId && (
+                  <Chat
+                  messages={messages}
+                  input={input}
+                  setInput={setInput}
+                  handleSendMessage={handleSendMessage}
+                  recipientUsername={recipientUsername}
+                />
+                )}
               </div>
             } />
             <Route path="/" element={<h1>Welcome to MERNChat</h1>} />
