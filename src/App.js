@@ -6,6 +6,10 @@ import './App.css';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 
+function RoomId(userId1, userId2) {
+  return userId1 < userId2 ? `${userId1}-${userId2}` : `${userId2}-${userId1}`;
+}
+
 function App() { 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +22,6 @@ function App() {
   const [input, setInput] = useState('');
   const [stateRoomId , setstateRoomId ] = useState('');
 
-  const socket = io('http://localhost:5000');
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -62,7 +65,7 @@ function App() {
     try {
       const timestamp = new Date().toISOString();
       const newMessage = {
-        roomId: loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`,
+        roomId: RoomId(loggedInUserId, recipientUserId),
         message: input,
         name: username, // Use the user's username for the message
         timestamp,
@@ -77,6 +80,7 @@ function App() {
   };  
 
   useEffect(() => {
+    if (!token) return;
     const fetchUsers = async () => {
       try {
         const response = await axios.get('/api/user/all');
@@ -90,9 +94,13 @@ function App() {
   }, [token]);
 
   useEffect(() => {
+    // Initialize the socket connection inside the useEffect
+    if (!loggedInUserId || !recipientUserId || !token) return;
+    setstateRoomId(RoomId(loggedInUserId, recipientUserId));    
+
     const fetchMessages = async () => {
       try {
-        const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
+        const computedRoomId = RoomId(loggedInUserId, recipientUserId);
         console.log('Fetching messages for room:', computedRoomId); // Add this log
         const response = await axios.get(`/api/messages/${computedRoomId}`);
         setMessages(response.data);
@@ -101,27 +109,38 @@ function App() {
       }
     };
 
-    if (loggedInUserId && recipientUserId) {
-      fetchMessages();
-      const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
-      setstateRoomId(computedRoomId);
-      console.log('Joining room:', computedRoomId); // Add this log
-      socket.emit('joinRoom', computedRoomId);
-    }
-  }, [loggedInUserId, recipientUserId, token, socket]);
+    const localSocket = io('http://localhost:3000');
 
-  useEffect(() => {
     // Listen for updates to messages
-    socket.on('newMessage', (newMessage) => {
-      console.log('Received new message:', newMessage); // Add this log
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    localSocket.on('newMessage', (newMessage) => {
+        console.log('Received new message:', newMessage);
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    // If loggedInUserId and recipientUserId are set, join the room
+    if (loggedInUserId && recipientUserId) {
+        const roomId = RoomId(loggedInUserId, recipientUserId);
+        console.log('Joining room:', roomId);
+        if (localSocket.connected) {
+          localSocket.emit('joinRoom', roomId);
+          fetchMessages();
+        } else {
+          // If the socket isn't connected yet, wait for it to connect
+          localSocket.on('connect', () => {
+            localSocket.emit('joinRoom', roomId);
+            fetchMessages();
+          });
+        }
+        localSocket.on('connect_error', (error) => {
+          console.error('Socket connection error:', error);
+      });
+      }
+    // Return the cleanup function
     return () => {
-      console.log('Disconnecting socket'); // Add this log
-      socket.disconnect(); // Disconnect the socket when the component is unmounted
+        console.log('Disconnecting socket');
+        localSocket.disconnect();
     };
-  }, [socket, messages]);
+}, [loggedInUserId, recipientUserId, token]); // Dependencies ensure that the room is joined when these values change
 
   return (
     <BrowserRouter> 

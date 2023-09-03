@@ -1,16 +1,14 @@
 // server.js
 const express = require('express');
 const http = require('http');
-const socketIO = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
 app.use(express.json());
-const io = socketIO(server);
 
-app.use(cors({origin: 'http://localhost:3000'}));
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 const authRoute = require('./routes/auth');
 app.use('/api/user', authRoute);
@@ -42,5 +40,3 @@ const PORT = 5000;
 server.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
-
-module.exports = { io };
