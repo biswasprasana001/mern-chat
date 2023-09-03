@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from 'axios';
-import io from 'socket.io-client'; // Import Socket.IO client
+import io from 'socket.io-client';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
@@ -16,9 +16,9 @@ function App() {
   const [recipientUsername, setRecipientUsername] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [roomId, setroomId] = useState('');
+  const [stateRoomId , setstateRoomId ] = useState('');
 
-  const socket = io('http://localhost:3000'); // Replace with your server URL
+  const socket = io('http://localhost:5000');
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -92,8 +92,8 @@ function App() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const roomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
-        const response = await axios.get(`/api/messages/${roomId}`);
+        const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
+        const response = await axios.get(`/api/messages/${computedRoomId}`);
         setMessages(response.data);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -102,22 +102,23 @@ function App() {
   
     if (loggedInUserId && recipientUserId) {
       fetchMessages();
-      setroomId(loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`);
-      socket.emit('joinRoom', roomId);
+      const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
+      setstateRoomId(computedRoomId);
+      socket.emit('joinRoom', computedRoomId);      
     }
   }, [loggedInUserId, recipientUserId, token]);    
 
-  useEffect(() => {
-   // Listen for updates to messages
-    socket.on('newMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
+useEffect(() => {
+  // Listen for updates to messages
+  socket.on('newMessage', (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  });
 
-    return () => {
-      socket.off('newMessage');
-    };
-  }, [messages]);
-  
+  return () => {
+    socket.off('newMessage');
+  };
+}, [messages]);
+
   return (
     <BrowserRouter> 
       {token ? (
@@ -126,7 +127,7 @@ function App() {
           <Routes>
             <Route path="/chat/:recipientUserId" element={
               <div className="app__body">
-                {roomId && (
+                {stateRoomId && (
                   <Chat
                   messages={messages}
                   input={input}
