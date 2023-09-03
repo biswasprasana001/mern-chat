@@ -93,31 +93,35 @@ function App() {
     const fetchMessages = async () => {
       try {
         const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
+        console.log('Fetching messages for room:', computedRoomId); // Add this log
         const response = await axios.get(`/api/messages/${computedRoomId}`);
         setMessages(response.data);
       } catch (error) {
         console.error('Error fetching messages:', error);
       }
     };
-  
+
     if (loggedInUserId && recipientUserId) {
       fetchMessages();
       const computedRoomId = loggedInUserId < recipientUserId ? `${loggedInUserId}-${recipientUserId}` : `${recipientUserId}-${loggedInUserId}`;
       setstateRoomId(computedRoomId);
-      socket.emit('joinRoom', computedRoomId);      
+      console.log('Joining room:', computedRoomId); // Add this log
+      socket.emit('joinRoom', computedRoomId);
     }
-  }, [loggedInUserId, recipientUserId, token]);    
+  }, [loggedInUserId, recipientUserId, token, socket]);
 
-useEffect(() => {
-  // Listen for updates to messages
-  socket.on('newMessage', (newMessage) => {
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-  });
+  useEffect(() => {
+    // Listen for updates to messages
+    socket.on('newMessage', (newMessage) => {
+      console.log('Received new message:', newMessage); // Add this log
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
 
-  return () => {
-    socket.off('newMessage');
-  };
-}, [messages]);
+    return () => {
+      console.log('Disconnecting socket'); // Add this log
+      socket.disconnect(); // Disconnect the socket when the component is unmounted
+    };
+  }, [socket, messages]);
 
   return (
     <BrowserRouter> 

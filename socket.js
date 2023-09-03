@@ -11,6 +11,7 @@ function initSocket(server) {
 
     socket.on('joinRoom', (roomId) => {
       socket.join(roomId);
+      console.log(`User joined room: ${roomId}`);
     });
 
     socket.on('disconnect', () => {
@@ -20,6 +21,9 @@ function initSocket(server) {
 }
 
 function getIO() {
+  if (!io) {
+    throw new Error('Socket.IO has not been initialized');
+  }
   return io;
 }
 
