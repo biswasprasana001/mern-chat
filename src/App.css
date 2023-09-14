@@ -1,79 +1,38 @@
-/* src/App.css */
-.app {
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
 }
 
-.app__login {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
+.App-link {
+  color: #61dafb;
 }
 
-.app__login form {
-  display: flex;
-  flex-direction: column;
-}
-
-.app__login input {
-  margin: 5px;
-  padding: 5px;
-}
-
-.app__login button {
-  margin: 5px;
-  padding: 5px;
-  cursor: pointer;
-}
-
-.sidebar {
-  flex: 0.3;
-  height: 100vh;
-  background-color: lightgray;
-  padding: 20px;
-}
-
-.sidebar h2 {
-  margin-bottom: 10px;
-}
-
-.sidebar ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin-bottom: 10px;
-}
-
-.chat {
-  flex: 0.7;
-  padding: 20px;
-  overflow-y: scroll;
-}
-
-.chat__input {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 0;
-}
-
-.chat__input form {
-  display: flex;
-  flex: 1;
-}
-
-.chat__input input {
-  flex: 1;
-  padding: 10px;
-}
-
-.chat__input button {
-  margin-left: 10px;
-  padding: 10px;
-  cursor: pointer;
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
