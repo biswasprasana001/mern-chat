@@ -1,5 +1,5 @@
 // src\components\Chat.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import io from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -9,12 +9,12 @@ function Chat() {
     const [message, setMessage] = useState("");
     const [username, setUsername] = useState("");
 
-    socket.on('msg', (newMessage) => {
-        setMessages(() => [...messages, newMessage]);
+    socket.on('message', (message) => {
+        setMessages([...messages, message]);
     });
 
     const sendMessage = () => {
-        socket.emit('msg', { username, message, timestamp: new Date() });
+        socket.emit('message', { username, message, timestamp: new Date() });
         setMessage('');
     };
 
@@ -36,4 +36,3 @@ function Chat() {
 }
 
 export default Chat;
-
