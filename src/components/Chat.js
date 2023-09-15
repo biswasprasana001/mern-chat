@@ -9,15 +9,11 @@ function Chat() {
     const [message, setMessage] = useState("");
     const [username, setUsername] = useState("");
 
-    useEffect(() => {
-        // Use socket.once() instead of socket.on() to register a one-time listener
-        socket.once('msg', (newMessage) => {
-            setMessages(() => [...messages, newMessage]);
-        });
-    }, []);
+    socket.on('msg', (newMessage) => {
+        setMessages(() => [...messages, newMessage]);
+    });
 
     const sendMessage = () => {
-        // Use socket.broadcast.emit() instead of socket.emit() to send the message to everyone except yourself
         socket.emit('msg', { username, message, timestamp: new Date() });
         setMessage('');
     };
