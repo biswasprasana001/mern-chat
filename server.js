@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const Message = require('./models/Message');
+const Chat = require('./models/Chat');
 
 
 const app = express();
@@ -24,10 +24,10 @@ mongoose.connect('mongodb+srv://biswasprasana004:ksLWl8yWy2W5xt59@cluster0.vpsmj
 io.on('connection', (socket) => {
     console.log('New client connected');
 
-    socket.on('message', async (msg) => {
-        const newMessage = new Message(msg);
+    socket.on('msg', async (msg) => {
+        const newMessage = new Chat(msg);
         await newMessage.save();
-        io.emit('message', msg);
+        io.emit('msg', msg);
     });
 
     socket.on('disconnect', () => {
