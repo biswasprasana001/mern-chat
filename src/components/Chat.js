@@ -4,10 +4,10 @@ import io from "socket.io-client";
 
 const socket = io("http://localhost:5000");
 
-function Chat() {
+function Chat({ username }) {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState("");
-    const [username, setUsername] = useState("");
+
 
     socket.on('message', (message) => {
         setMessages([...messages, message]);
@@ -20,7 +20,6 @@ function Chat() {
 
     return (
         <div>
-            <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
             <div>
                 {messages.map((msg, index) => (
                     <div key={index}>
@@ -32,7 +31,6 @@ function Chat() {
             <button onClick={sendMessage}>Send</button>
         </div>
     );
-
 }
 
 export default Chat;
