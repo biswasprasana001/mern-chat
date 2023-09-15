@@ -79,6 +79,15 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/messages', async (req, res) => {
+    try {
+        const messages = await Chat.find().sort({ timestamp: 1 });
+        res.status(200).send(messages);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
 server.listen(5000, () => {
     console.log('Server is running on http://localhost:5000');
 });
