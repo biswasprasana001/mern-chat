@@ -5,29 +5,33 @@ import axios from 'axios';
 
 const socket = io("http://localhost:5000");
 
-function Chat({ username }) {
+function Chat({ userId, chatRoomId }) {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                const res = await axios.get('http://localhost:5000/messages');
-                setMessages(res.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
+        if (chatRoomId) {
+            socket.emit('joinRoom', chatRoomId);
 
-        fetchMessages();
-    }, []);
+            const fetchMessages = async () => {
+                try {
+                    const res = await axios.get(`http://localhost:5000/chatroom/${chatRoomId}/messages`);
+                    setMessages(res.data);
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            fetchMessages();
+        }
+    }, [chatRoomId]);
 
     socket.on('message', (message) => {
         setMessages([...messages, message]);
     });
 
     const sendMessage = () => {
-        socket.emit('message', { username, message, timestamp: new Date() });
+        socket.emit('message', { roomId: chatRoomId, userId, message, timestamp: new Date() });
         setMessage('');
     };
 
@@ -36,7 +40,7 @@ function Chat({ username }) {
             <div>
                 {messages.map((msg, index) => (
                     <div key={index}>
-                        <b>{msg.username}</b>: {msg.message}
+                        <b>{msg.sender.username}</b>: {msg.message}
                     </div>
                 ))}
             </div>

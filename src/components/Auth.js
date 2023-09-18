@@ -5,13 +5,13 @@ import axios from 'axios';
 function Auth({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState();
 
   const handleSubmit = async () => {
     try {
       const res = await axios.post(`http://localhost:5000/${isLogin ? 'login' : 'register'}`, { username, password });
       if (res.data.token) {
-        onLogin(res.data.token, res.data.username);
+        onLogin(res.data.token, res.data.userId);
       }
     } catch (error) {
       console.error(error);

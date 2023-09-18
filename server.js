@@ -26,25 +26,40 @@ mongoose.connect('mongodb+srv://biswasprasana004:ksLWl8yWy2W5xt59@cluster0.vpsmj
 const UserSchema = new mongoose.Schema({
     username: String,
     password: String,
+    contacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    chatRooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChatRoom' }]
 });
 
 const User = mongoose.model('User', UserSchema);
 
-const ChatSchema = new mongoose.Schema({
-    username: String,
-    message: String,
-    timestamp: Date,
+const ChatRoomSchema = new mongoose.Schema({
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    messages: [
+        {
+            sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            message: String,
+            timestamp: Date
+        }
+    ]
 });
 
-const Chat = mongoose.model('Chat', ChatSchema);
+const ChatRoom = mongoose.model('ChatRoom', ChatRoomSchema);
 
 io.on('connection', (socket) => {
     console.log('User connected');
 
+    socket.on('joinRoom', (roomId) => {
+        socket.join(roomId);
+    });
+
     socket.on('message', async (data) => {
-        const newMessage = new Chat({ username: data.username, message: data.message, timestamp: new Date() });
-        await newMessage.save();
-        io.emit('message', { username: data.username, message: data.message, timestamp: new Date() });
+        const { roomId, userId, message } = data;
+        const user = await User.findById(userId);
+        if (user) {
+            const newMessage = { sender: userId, message, timestamp: new Date() };
+            await ChatRoom.findByIdAndUpdate(roomId, { $push: { messages: newMessage } });
+            io.to(roomId).emit('message', { ...newMessage, sender: user });
+        }
     });
 
     socket.on('disconnect', () => {
@@ -70,7 +85,7 @@ app.post('/login', async (req, res) => {
         const user = await User.findOne({ username });
         if (user && await bcrypt.compare(password, user.password)) {
             const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' });
-            res.status(200).send({ token, username });
+            res.status(200).send({ token, userId: user._id });
         } else {
             res.status(400).send({ error: 'Invalid credentials' });
         }
@@ -83,6 +98,44 @@ app.get('/messages', async (req, res) => {
     try {
         const messages = await Chat.find().sort({ timestamp: 1 });
         res.status(200).send(messages);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+app.get('/users', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).send(users);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+app.post('/chatroom', async (req, res) => {
+    try {
+        const { userId, contactId } = req.body;
+
+        let chatRoom = await ChatRoom.findOne({ members: { $all: [userId, contactId] } });
+        if (!chatRoom) {
+            chatRoom = new ChatRoom({ members: [userId, contactId], messages: [] });
+            await chatRoom.save();
+
+            await User.findByIdAndUpdate(userId, { $push: { contacts: contactId, chatRooms: chatRoom._id } });
+            await User.findByIdAndUpdate(contactId, { $push: { contacts: userId, chatRooms: chatRoom._id } });
+        }
+
+        res.status(201).send(chatRoom);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+
+app.get('/chatroom/:id/messages', async (req, res) => {
+    try {
+        const chatRoom = await ChatRoom.findById(req.params.id).populate('messages.sender');
+        res.status(200).send(chatRoom.messages);
     } catch (error) {
         res.status(500).send({ error: error.message });
     }
