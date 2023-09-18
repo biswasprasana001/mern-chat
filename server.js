@@ -6,6 +6,7 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+require('dotenv').config()
 
 const app = express();
 app.use(express.json());
@@ -19,7 +20,7 @@ const io = socketIo(server, {
     }
 });
 
-mongoose.connect('mongodb+srv://biswasprasana004:ksLWl8yWy2W5xt59@cluster0.vpsmj3b.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Successfully connected to the database'))
     .catch(err => console.error('Error occurred while connecting to the database:', err));
 
@@ -130,7 +131,6 @@ app.post('/chatroom', async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 });
-
 
 app.get('/chatroom/:id/messages', async (req, res) => {
     try {
