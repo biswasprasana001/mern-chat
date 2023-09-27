@@ -19,22 +19,16 @@ A real-time chat application built using the MERN stack (MongoDB, Express.js, Re
 
 1. Clone the repository:
 ```
-git clone https://github.com/your-username/mern-chat-app.git
+git clone https://github.com/biswasprasana001/mern-chat.git
 ```
 
 2. Navigate to the project directory:
 ```
-cd mern-chat-app
+cd mern-chat
 ```
 
-3. Install backend dependencies:
+3. Install dependencies:
 ```
-npm install
-```
-
-4. Navigate to the frontend directory and install frontend dependencies:
-```
-cd client
 npm install
 ```
 
@@ -45,9 +39,8 @@ npm install
 node server.js
 ```
 
-2. In a separate terminal, navigate to the frontend directory and start the React app:
+2. In a separate terminal, start the React app:
 ```
-cd client
 npm start
 ```
 
